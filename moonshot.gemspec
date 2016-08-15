@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.files       = Dir['lib/**/*.rb']
   s.homepage    = 'https://github.com/acquia/moonshot'
 
-  s.add_dependency('aws-sdk', '~> 2.2.0')
+  s.add_dependency('aws-sdk', '~> 2.0', '>= 2.2.0')
   s.add_dependency('colorize')
   s.add_dependency('highline', '~> 1.7.2')
   s.add_dependency('interactive-logger', '~> 0.1.1')
