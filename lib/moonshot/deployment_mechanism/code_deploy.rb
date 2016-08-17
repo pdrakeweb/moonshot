@@ -326,10 +326,12 @@ http://docs.aws.amazon.com/codedeploy/latest/userguide/how-to-create-service-rol
   end
 
   def doctor_check_auto_scaling_resource_defined
-    if stack.template.resource_names.include?(@asg_logical_id)
-      success("Resource '#{@asg_logical_id}' exists in the CloudFormation template.") # rubocop:disable LineLength
-    else
-      critical("Resource '#{@asg_logical_id}' does not exist in the CloudFormation template!") # rubocop:disable LineLength
+    @asg_logical_ids.each do |asg_logical_id|
+      if stack.template.resource_names.include?(asg_logical_id)
+        success("Resource '#{asg_logical_id}' exists in the CloudFormation template.") # rubocop:disable LineLength
+      else
+        critical("Resource '#{asg_logical_id}' does not exist in the CloudFormation template!") # rubocop:disable LineLength
+      end
     end
   end
 end
