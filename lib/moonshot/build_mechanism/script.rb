@@ -74,6 +74,7 @@ class Moonshot::BuildMechanism::Script
     end
   end
 
+  add_doctor_check :doctor_check_script_exists, is_config: true
   def doctor_check_script_exists
     if File.exist?(@script)
       success "Script '#{@script}' exists."
