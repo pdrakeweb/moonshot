@@ -1,6 +1,7 @@
 require_relative 'creds_helper'
 require_relative 'doctor_helper'
 
+require_relative 'stack_policy'
 require_relative 'stack_template'
 require_relative 'stack_parameter_printer'
 require_relative 'stack_output_printer'
@@ -169,9 +170,22 @@ module Moonshot
       @template ||= StackTemplate.new(template_file, log: @log)
     end
 
+    def policy
+      @policy ||= File.exist?(policy_file) ? StackPolicy.new(policy_file, log: @log) : false
+    end
+
     # @return [String] the path to the template file.
     def template_file
-      File.join(Dir.pwd, 'cloud_formation', "#{@app_name}.json")
+      "#{file_base}.json"
+    end
+
+    # @return [String] the path to the policy file.
+    def policy_file
+      "#{file_base}-policy.json"
+    end
+
+    def file_base
+      File.join(Dir.pwd, 'cloud_formation', "#{@app_name}")
     end
 
     # @return [String] the path to the parameters file.
@@ -283,23 +297,13 @@ module Moonshot
     end
 
     def create_stack
-      cf_client.create_stack(
-        stack_name: @name,
-        template_body: template.body,
-        capabilities: ['CAPABILITY_IAM'],
-        parameters: load_parameters_file,
-        tags: [
-          { key: 'ah_stage', value: @name }
-        ]
-      )
+      cf_client.create_stack(stack_operation_parameters)
     rescue Aws::CloudFormation::Errors::AccessDenied
       raise Thor::Error, 'You are not authorized to perform create_stack calls.'
     end
 
-    # @return [Boolean]
-    #   true if a stack update was required and initiated, false otherwise.
-    def update_stack
-      cf_client.update_stack(
+    def stack_operation_parameters
+      parameters = {
         stack_name: @name,
         template_body: template.body,
         capabilities: ['CAPABILITY_IAM'],
@@ -307,8 +311,19 @@ module Moonshot
           overrides,
           parameters,
           template
-        )
-      )
+        ),
+        tags: [
+          { key: 'ah_stage', value: @name }
+        ]
+      }
+      parameters[:stack_policy_body] = policy.body if policy
+      parameters
+    end
+
+    # @return [Boolean]
+    #   true if a stack update was required and initiated, false otherwise.
+    def update_stack
+      cf_client.update_stack(stack_operation_parameters)
       true
     rescue Aws::CloudFormation::Errors::ValidationError => e
       raise Thor::Error, e.message unless
