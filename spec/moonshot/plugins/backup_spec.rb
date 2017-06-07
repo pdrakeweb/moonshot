@@ -20,10 +20,12 @@ describe Moonshot::Plugins::Backup do
     it 'should yield self' do
       backup = subject.new do |b|
         b.bucket = 'test'
+        b.bucket_region = 'us-east-2'
         b.files = %w(sample files)
         b.hooks = [:sample, :hooks]
       end
       expect(backup.bucket).to eq('test')
+      expect(backup.bucket_region).to eq('us-east-2')
       expect(backup.files).to eq(%w(sample files))
       expect(backup.hooks).to eq([:sample, :hooks])
     end

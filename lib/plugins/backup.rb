@@ -14,7 +14,8 @@ module Moonshot
                     :hooks,
                     :target_name,
                     :backup_parameters,
-                    :backup_template
+                    :backup_template,
+                    :bucket_region
 
       def initialize
         yield self if block_given?
@@ -162,7 +163,9 @@ module Moonshot
       #
       # @param io_zip [IO] tar stream
       def upload(io_zip)
-        s3_client.put_object(
+        opts = {}
+        opts[:region] = @bucket_region if @bucket_region
+        s3_client(opts).put_object(
           acl: 'private',
           bucket: @target_bucket,
           key: @target_name,
